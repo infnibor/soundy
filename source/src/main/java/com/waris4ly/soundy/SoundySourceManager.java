@@ -15,8 +15,6 @@ import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.net.http.HttpClient;
-import java.time.Duration;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -27,18 +25,12 @@ public class SoundySourceManager implements AudioSourceManager {
             "^https?://(?:www\\.)?soundcloud\\.com/.+");
     private static final String SEARCH_PREFIX = "scsearch:";
 
-    // one shared connection pool for the whole plugin lifetime
-    private static final HttpClient SHARED_HTTP = HttpClient.newBuilder()
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
-
     private final SoundCloudService service;
     private final HttpInterfaceManager httpInterfaceManager;
 
     public SoundySourceManager() {
-        ClientIdProvider clientIdProvider = new ClientIdProvider(SHARED_HTTP);
-        SoundCloudHttpClient soundCloudHttpClient = new SoundCloudHttpClient(SHARED_HTTP, clientIdProvider);
+        ClientIdProvider clientIdProvider = new ClientIdProvider();
+        SoundCloudHttpClient soundCloudHttpClient = new SoundCloudHttpClient(clientIdProvider);
         this.service = new SoundCloudService(soundCloudHttpClient);
         this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
     }
@@ -72,8 +64,8 @@ public class SoundySourceManager implements AudioSourceManager {
     }
 
     private AudioItem loadFromUrl(String url) {
-        try {
-            Object resolved = service.resolveUrl(url);
+        try (HttpInterface http = getHttpInterface()) {
+            Object resolved = service.resolveUrl(http, url);
 
             if (resolved instanceof TrackData track) {
                 return buildTrack(track);
@@ -89,10 +81,6 @@ public class SoundySourceManager implements AudioSourceManager {
             }
 
             return AudioReference.NO_TRACK;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new FriendlyException("Interrupted while loading: " + url,
-                    FriendlyException.Severity.FAULT, e);
         } catch (IOException e) {
             throw new FriendlyException("Failed to load SoundCloud URL: " + url,
                     FriendlyException.Severity.SUSPICIOUS, e);
@@ -103,8 +91,8 @@ public class SoundySourceManager implements AudioSourceManager {
         if (query.isEmpty()) {
             return AudioReference.NO_TRACK;
         }
-        try {
-            List<TrackData> results = service.search(query);
+        try (HttpInterface http = getHttpInterface()) {
+            List<TrackData> results = service.search(http, query);
             if (results.isEmpty()) {
                 return AudioReference.NO_TRACK;
             }
@@ -114,10 +102,6 @@ public class SoundySourceManager implements AudioSourceManager {
                     .collect(Collectors.toList());
             return tracks.isEmpty() ? AudioReference.NO_TRACK
                     : new BasicAudioPlaylist("Search results for: " + query, tracks, null, true);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new FriendlyException("Interrupted while searching: " + query,
-                    FriendlyException.Severity.FAULT, e);
         } catch (IOException e) {
             throw new FriendlyException("Search failed for: " + query,
                     FriendlyException.Severity.SUSPICIOUS, e);

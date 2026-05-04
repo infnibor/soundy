@@ -13,8 +13,6 @@ import java.net.URI;
 public class SoundyAudioTrack extends DelegatedAudioTrack {
 
     private final SoundySourceManager sourceManager;
-
-    // fetched once per play session, not on every seek
     private volatile StreamData cachedStream;
 
     public SoundyAudioTrack(SoundyAudioTrackInfo trackInfo, SoundySourceManager sourceManager) {
@@ -27,7 +25,9 @@ public class SoundyAudioTrack extends DelegatedAudioTrack {
         SoundyAudioTrackInfo info = (SoundyAudioTrackInfo) trackInfo;
 
         if (cachedStream == null) {
-            cachedStream = sourceManager.getService().getStream(info.getTrackId());
+            try (HttpInterface http = sourceManager.getHttpInterface()) {
+                cachedStream = sourceManager.getService().getStream(http, info.getTrackId());
+            }
         }
 
         try (HttpInterface httpInterface = sourceManager.getHttpInterface()) {

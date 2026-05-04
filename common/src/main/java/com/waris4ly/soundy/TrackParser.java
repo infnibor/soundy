@@ -1,18 +1,21 @@
 package com.waris4ly.soundy;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 
 public class TrackParser {
 
-    public TrackData parse(JsonNode node) {
-        long id = node.get("id").asLong();
-        String title = node.get("title").asText();
-        String permalinkUrl = node.get("permalink_url").asText();
-        long duration = node.get("duration").asLong();
-        String artworkUrl = node.has("artwork_url") && !node.get("artwork_url").isNull()
-                ? node.get("artwork_url").asText() : "";
-        String username = node.path("user").path("username").asText("Unknown");
-        boolean streamable = node.has("streamable") && node.get("streamable").asBoolean();
-        return new TrackData(id, title, permalinkUrl, duration, artworkUrl, username, streamable);
+    public TrackData parse(JsonBrowser track) {
+        long id = track.get("id").asLong(0);
+        String title = track.get("title").text();
+        String permalinkUrl = track.get("permalink_url").text();
+        long duration = track.get("duration").asLong(0);
+        String artworkUrl = track.get("artwork_url").text();
+        String username = track.get("user").get("username").text();
+        boolean streamable = track.get("streamable").asBoolean(false);
+
+        return new TrackData(id, title, permalinkUrl, duration,
+                artworkUrl != null ? artworkUrl : "",
+                username != null ? username : "Unknown",
+                streamable);
     }
 }
