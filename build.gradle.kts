@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = "com.waris4ly.soundy"
-    version = "1.0.0"
+    version = "1.0.1"
 
     repositories {
         mavenCentral()
