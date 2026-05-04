@@ -28,7 +28,8 @@ subprojects {
     }
 }
 
-subprojects {
+// plugin module has its own publishing via lavalink gradle plugin
+configure(subprojects.filter { it.name != "plugin" }) {
     apply(plugin = "maven-publish")
 
     configure<PublishingExtension> {
