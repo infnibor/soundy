@@ -1,3 +1,3 @@
 rootProject.name = "soundy"
 
-include("common", "source", "plugin", "test-plugin")
+include("common", "source", "plugin")
