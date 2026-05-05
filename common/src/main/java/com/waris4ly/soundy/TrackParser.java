@@ -12,10 +12,13 @@ public class TrackParser {
         String artworkUrl = track.get("artwork_url").text();
         String username = track.get("user").get("username").text();
         boolean streamable = track.get("streamable").asBoolean(false);
+        
+        String policy = track.get("policy").text();
+        boolean isPreview = "SNIPPED".equalsIgnoreCase(policy);
 
         return new TrackData(id, title, permalinkUrl, duration,
                 artworkUrl != null ? artworkUrl : "",
                 username != null ? username : "Unknown",
-                streamable);
+                streamable && !isPreview);
     }
 }

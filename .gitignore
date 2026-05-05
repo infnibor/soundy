@@ -2,6 +2,7 @@
 build/
 */build/
 out/
+test-plugin/
 
 # gradle
 .gradle/
