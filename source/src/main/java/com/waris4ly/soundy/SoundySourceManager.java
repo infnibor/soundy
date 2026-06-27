@@ -115,6 +115,7 @@ public class SoundySourceManager implements AudioSourceManager {
                 data.getDuration(),
                 String.valueOf(data.getId()),
                 data.getPermalinkUrl(),
+                data.getArtworkUrl(),
                 data.getId()
         );
         return new SoundyAudioTrack(info, this);
@@ -135,7 +136,7 @@ public class SoundySourceManager implements AudioSourceManager {
     public AudioTrack decodeTrack(AudioTrackInfo info, DataInput input) throws IOException {
         long trackId = input.readLong();
         SoundyAudioTrackInfo soundyInfo = new SoundyAudioTrackInfo(
-                info.title, info.author, info.length, info.identifier, info.uri, trackId);
+                info.title, info.author, info.length, info.identifier, info.uri, info.artworkUrl, trackId);
         return new SoundyAudioTrack(soundyInfo, this);
     }
 

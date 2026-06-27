@@ -1,5 +1,6 @@
 package com.waris4ly.soundy;
 
+import com.sedmelluq.discord.lavaplayer.tools.ThumbnailTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 
 public class TrackParser {
@@ -9,7 +10,7 @@ public class TrackParser {
         String title = track.get("title").text();
         String permalinkUrl = track.get("permalink_url").text();
         long duration = track.get("duration").asLong(0);
-        String artworkUrl = track.get("artwork_url").text();
+        String artworkUrl = ThumbnailTools.getSoundCloudThumbnail(track);
         String username = track.get("user").get("username").text();
         boolean streamable = track.get("streamable").asBoolean(false);
         

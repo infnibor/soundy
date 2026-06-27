@@ -6,12 +6,14 @@ plugins {
 
 allprojects {
     group = "com.waris4ly.soundy"
-    version = "1.0.3"
+    version = System.getenv("GITHUB_SHA")?.take(7) ?: "local"
 
     repositories {
         mavenCentral()
+        maven("https://www.maven.pcreators.pl/snapshots")
+        maven("https://www.maven.pcreators.pl/releases")
         maven("https://maven.lavalink.dev/releases")
-        maven("https://jitpack.io")
+        maven("https://maven.lavalink.dev/snapshots")
     }
 }
 
@@ -28,26 +30,28 @@ subprojects {
     }
 }
 
-// plugin module has its own publishing via lavalink gradle plugin
-configure(subprojects.filter { it.name != "plugin" }) {
+project(":plugin") {
     apply(plugin = "maven-publish")
+    apply(plugin = "java")
 
-    configure<PublishingExtension> {
+    extensions.configure<PublishingExtension> {
         repositories {
             maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/waris4ly/soundy")
+                name = "MyMaven"
+                url = uri("https://www.maven.pcreators.pl/snapshots")
                 credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
                 }
             }
         }
+
         publications {
-            create<MavenPublication>("maven") {
+            create<MavenPublication>("soundy") {
                 from(components["java"])
-                groupId = "com.waris4ly.soundy"
-                artifactId = project.name
+
+                groupId = "com.github.infnibor.soundy"
+                artifactId = "soundy-plugin"
                 version = project.version.toString()
             }
         }
